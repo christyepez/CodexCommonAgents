@@ -13,6 +13,40 @@ Este repositorio debe ser usado por:
 - `CRM`
 - futuros dominios o modulos corporativos
 
+## Configuracion inicial de Codex
+
+Las skills oficiales de Anthropic forman parte del entorno base recomendado para Codex.
+
+Ejecutar una sola vez en PowerShell:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\scripts\setup-codex.ps1
+```
+
+El script ejecuta de forma no interactiva:
+
+```powershell
+npx skills add anthropics/skills --agent codex --global --yes
+```
+
+La instalacion global permite que las skills esten disponibles por defecto en todos los proyectos del usuario.
+
+Para instalar solamente en el repositorio actual:
+
+```powershell
+.\scripts\setup-codex.ps1 -ProjectOnly
+```
+
+Requisitos:
+
+```powershell
+node --version
+npm --version
+npx --version
+git --version
+```
+
 ## Principio central
 
 `PortalCorporativo` es la plataforma transversal.
@@ -50,6 +84,7 @@ rules/        Reglas globales de arquitectura, seguridad, calidad y codigo.
 registry/     Inventario de capacidades reutilizables y lista de no duplicacion.
 playbooks/    Guias de ejecucion por tipo de proyecto.
 templates/    Plantillas para nuevos repositorios.
+scripts/      Automatizacion para preparar el entorno Codex.
 ```
 
 ## Regla de bajo consumo de tokens
