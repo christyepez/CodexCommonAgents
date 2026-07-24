@@ -4,6 +4,16 @@
 
 Este archivo define las reglas comunes que Codex debe aplicar en todos los repositorios que usen este estandar.
 
+## Preparacion del entorno
+
+El entorno Codex debe tener instaladas las skills compartidas de Anthropic. En una nueva maquina o perfil de usuario, ejecutar:
+
+```powershell
+.\scripts\setup-codex.ps1
+```
+
+Este bootstrap instala globalmente `anthropics/skills` para el agente `codex`. Codex no debe volver a ejecutar la instalacion en cada tarea; solo debe recomendarla cuando las skills no esten disponibles o cuando se prepare una nueva maquina.
+
 ## Lectura obligatoria
 
 Codex debe leer primero:
