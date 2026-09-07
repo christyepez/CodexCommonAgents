@@ -16,7 +16,25 @@ registry/do-not-duplicate.md
 playbooks/portal-first-implementation.md
 ```
 
-Despues debe leer el playbook del dominio correspondiente.
+Despues debe leer el playbook del dominio correspondiente y el agente especializado que aplique a la tarea.
+
+Para tareas backend, la lectura obligatoria incluye:
+
+```text
+agents/03-backend-agent.md
+```
+
+## Baseline backend
+
+Para nuevos componentes backend, salvo excepcion expresamente aprobada y documentada por el repositorio del proyecto, el baseline comun es:
+
+```text
+.NET 10
+ASP.NET Core 10
+TargetFramework: net10.0
+```
+
+Deben utilizarse paquetes estables compatibles con la linea 10.x. No se deben introducir paquetes preview en codigo productivo sin autorizacion explicita.
 
 ## Regla principal
 
@@ -41,6 +59,7 @@ BLOCKED = detener hasta revisar dependencia, contrato o capacidad del portal.
 - Acoplar dominios mediante bases de datos compartidas.
 - Guardar secretos en codigo, repositorio o archivos `.env` versionados.
 - Crear integraciones externas sin contratos, adaptadores y reintentos.
+- Crear nuevos componentes backend en frameworks anteriores a .NET 10 sin una excepcion aprobada y documentada.
 
 ## Salida esperada de Codex
 
