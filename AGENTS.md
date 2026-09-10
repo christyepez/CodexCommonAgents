@@ -16,6 +16,13 @@ registry/do-not-duplicate.md
 playbooks/portal-first-implementation.md
 ```
 
+Para cualquier tarea que use Docker, Docker Compose o imagenes de contenedores, la lectura obligatoria tambien incluye:
+
+```text
+rules/02-docker-runtime-and-image-governance.md
+playbooks/docker-multi-machine-runtime.md
+```
+
 Despues debe leer el playbook del dominio correspondiente y el agente especializado que aplique a la tarea.
 
 Para tareas backend, la lectura obligatoria incluye:
@@ -35,6 +42,18 @@ TargetFramework: net10.0
 ```
 
 Deben utilizarse paquetes estables compatibles con la linea 10.x. No se deben introducir paquetes preview en codigo productivo sin autorizacion explicita.
+
+## Baseline Docker y multi-equipo
+
+Todo proyecto contenedorizado debe poder ejecutarse de forma reproducible en distintos equipos sin depender de builds locales divergentes.
+
+Para servicios propios del proyecto, Codex debe preferir imagenes publicadas en el registro con tags inmutables por revision y, cuando se requiera igualdad exacta entre equipos, referencias por digest `repository@sha256:...`.
+
+Un proyecto que use Docker Compose debe mantener una separacion entre topologia/base de desarrollo y runtime desde registro, normalmente mediante `docker-compose.yml` + `docker-compose.hub.yml` o equivalente.
+
+No se deben eliminar imagenes propias sin comprobar recuperabilidad remota exacta. Si no existe, debe publicarse primero un tag inmutable de respaldo.
+
+Las bases de datos y volumenes persistentes no forman parte de una limpieza rutinaria y deben preservarse salvo autorizacion expresa.
 
 ## Regla principal
 
@@ -60,6 +79,8 @@ BLOCKED = detener hasta revisar dependencia, contrato o capacidad del portal.
 - Guardar secretos en codigo, repositorio o archivos `.env` versionados.
 - Crear integraciones externas sin contratos, adaptadores y reintentos.
 - Crear nuevos componentes backend en frameworks anteriores a .NET 10 sin una excepcion aprobada y documentada.
+- Usar `latest` como unica referencia de imagen para runtimes que deban ser reproducibles entre equipos.
+- Ejecutar `docker system prune -a --volumes` como mecanismo rutinario de limpieza.
 
 ## Salida esperada de Codex
 
@@ -86,6 +107,16 @@ Tests Added:
 Commands Executed:
 Risks:
 Next Step:
+```
+
+Para tareas Docker debe agregar ademas:
+
+```text
+Runtime Machine(s):
+Registry Recoverability Checked:
+Digests Pinned:
+Persistent Volumes Preserved:
+Health Validation:
 ```
 
 ## Modo bajo consumo de tokens
