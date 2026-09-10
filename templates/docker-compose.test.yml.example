@@ -1,0 +1,9 @@
+services:
+  app:
+    environment:
+      APP_ENVIRONMENT: Test
+    ports:
+      - "${TEST_APP_PORT:-18080}:8080"
+
+# TEST must use isolated database/schema, messaging namespaces and test data.
+# It must consume the same candidate application digest validated for release.
