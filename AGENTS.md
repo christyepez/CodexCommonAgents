@@ -21,7 +21,18 @@ Para cualquier tarea que use Docker, Docker Compose o imagenes de contenedores, 
 ```text
 rules/02-docker-runtime-and-image-governance.md
 rules/03-shared-infrastructure-reuse.md
+registry/runtime-machines.md
+registry/shared-infrastructure.md
+registry/docker-port-registry.md
+registry/docker-image-registry.md
 playbooks/docker-multi-machine-runtime.md
+```
+
+Para nuevos proyectos o implementaciones con trabajo paralelo, la lectura obligatoria tambien incluye:
+
+```text
+rules/04-project-chat-and-parallel-agent-execution.md
+playbooks/parallel-project-execution.md
 ```
 
 Despues debe leer el playbook del dominio correspondiente y el agente especializado que aplique a la tarea.
@@ -52,11 +63,25 @@ Para servicios propios del proyecto, Codex debe preferir imagenes publicadas en 
 
 Un proyecto que use Docker Compose debe mantener una separacion entre topologia/base de desarrollo y runtime desde registro, normalmente mediante `docker-compose.yml` + `docker-compose.hub.yml` o equivalente.
 
+Todo Docker propio creado como parte de una implementacion compartida debe publicarse en Docker Hub o el registro aprobado antes de considerarse artefacto reusable. `trabajo` y `MarketingIndo` son actualmente los equipos de referencia y deben poder levantar el mismo runtime desde registro.
+
+Docker Desktop es entorno local de ejecucion/cache y se usa cuando sea necesario; no es la fuente autoritativa de imagenes compartidas.
+
 No se deben eliminar imagenes propias sin comprobar recuperabilidad remota exacta. Si no existe, debe publicarse primero un tag inmutable de respaldo.
 
 Las bases de datos y volumenes persistentes no forman parte de una limpieza rutinaria y deben preservarse salvo autorizacion expresa.
 
 Antes de crear una nueva dependencia de infraestructura como base de datos, RabbitMQ, Kafka, Redis, MinIO, Seq, Grafana o Prometheus, Codex debe revisar si existe un runtime compatible que pueda reutilizarse de forma segura. La regla por defecto es REUSE antes que CREATE, manteniendo aislamiento logico por proyecto y sin reutilizar destructivamente datos, credenciales, colas, topics o volumenes de otro dominio.
+
+## Baseline de proyecto y trabajo paralelo
+
+Cuando se inicia un nuevo proyecto, debe organizarse en un ChatGPT Project/carpeta de proyecto cuando la interfaz lo permita. Dentro de ese espacio, cada agente o stream especializado debe trabajar en su propio chat/hilo cuando el paralelismo sea seguro.
+
+El hilo `00 - Project Orchestrator` coordina roadmap, dependencias, contratos, ramas/PRs, integracion y estado global. Los hilos especializados no sustituyen al repositorio: Git, PRs, ADRs, pruebas y artefactos publicados son la fuente de verdad de implementacion.
+
+Los agentes pueden avanzar en paralelo solamente cuando existe ownership claro y contratos estables. Cambios de alto conflicto sobre los mismos archivos, schemas, migraciones, contratos o manifiestos deben serializarse o coordinarse primero.
+
+Si la interfaz no permite crear chats/carpetas programaticamente, Codex debe entregar la estructura exacta recomendada sin afirmar que la creo.
 
 ## Regla principal
 
@@ -67,9 +92,9 @@ Clasificacion obligatoria:
 ```text
 REUSE   = usar directamente componente del portal.
 EXTEND  = extender configuracion, catalogos, menus, permisos o metadata.
-ADAPT   = crear adaptador hacia API o servicio del portal.
-CREATE  = crear porque pertenece al dominio y no existe en portal.
-BLOCKED = detener hasta revisar dependencia, contrato o capacidad del portal.
+ADAPT   = crear adaptador hacia API o servicio reutilizable.
+CREATE  = crear componente nuevo del dominio.
+BLOCKED = no continuar hasta revisar el portal o resolver dependencia.
 ```
 
 ## Prohibido
@@ -86,6 +111,8 @@ BLOCKED = detener hasta revisar dependencia, contrato o capacidad del portal.
 - Ejecutar `docker system prune -a --volumes` como mecanismo rutinario de limpieza.
 - Crear una nueva instancia de SQL Server, PostgreSQL, MySQL, RabbitMQ, Kafka, Redis u otro servicio de infraestructura sin comprobar primero si existe una instancia compatible y reutilizable.
 - Reutilizar una infraestructura existente destruyendo o mezclando datos, schemas, credenciales, colas, topics o volumenes de proyectos distintos.
+- Dar por terminada una tarea multi-equipo cuando su imagen Docker propia solo existe localmente.
+- Dar por integrada una tarea solo porque un chat/agente la reporta terminada sin evidencia en repositorio y validaciones.
 
 ## Salida esperada de Codex
 
@@ -125,6 +152,18 @@ Existing Infrastructure Reused:
 Isolation Strategy:
 Persistent Volumes Preserved:
 Health Validation:
+```
+
+Para trabajo paralelo debe agregar ademas:
+
+```text
+Project Workspace:
+Agent Thread:
+Base Revision:
+Branch/PR:
+Parallel Dependencies:
+Contracts Changed:
+Ready for Integration:
 ```
 
 ## Modo bajo consumo de tokens
