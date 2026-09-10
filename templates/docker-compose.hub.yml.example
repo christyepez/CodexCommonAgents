@@ -1,0 +1,12 @@
+services:
+  api:
+    image: ${APP_API_IMAGE:?APP_API_IMAGE must reference an immutable registry tag or digest}
+    build: null
+
+  worker:
+    image: ${APP_WORKER_IMAGE:?APP_WORKER_IMAGE must reference an immutable registry tag or digest}
+    build: null
+
+  web:
+    image: ${APP_WEB_IMAGE:?APP_WEB_IMAGE must reference an immutable registry tag or digest}
+    build: null
