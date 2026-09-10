@@ -76,20 +76,23 @@ Rules:
 1. Controllers/endpoints MUST NOT contain business logic.
 2. Controllers/endpoints MUST NOT access EF Core `DbContext` directly.
 3. Controllers/endpoints MUST NOT bypass Application Services by calling repositories directly for business operations.
-4. Application Services MUST NOT access `DbContext` directly.
-5. `Program.cs` MUST NOT implement use cases; it is a composition root only.
-6. Domain MUST remain framework-agnostic and persistence-agnostic.
-7. Application MUST NOT reference concrete Infrastructure implementations.
-8. Infrastructure implements interfaces/ports defined inward, primarily by Application.
-9. DTO/API contracts MUST be separated from persistence entities.
-10. Repositories MUST NOT become business-service containers.
-11. `DbContext` is the default Unit of Work; avoid ceremonial wrappers.
-12. Validation belongs at Application/domain boundaries, with API responsible only for transport validation/mapping.
-13. API errors must use centralized ProblemDetails/error mapping.
-14. Token generation, password hashing, storage, email, messaging and other external concerns must be behind interfaces.
-15. Audit, functional history and metrics are separate responsibilities and should use separate models/storage semantics.
-16. Secrets and environment-specific credentials MUST NOT be committed.
-17. Async I/O MUST propagate `CancellationToken` where practical.
+4. Controllers should be limited to HTTP concerns: binding, transport validation, authorization context, calling one application service/use case, and mapping the result to HTTP/ProblemDetails.
+5. Application Services MUST NOT access `DbContext` directly.
+6. Application Services contain orchestration/use-case logic and depend on interfaces, never concrete Infrastructure implementations.
+7. Domain contains business invariants, domain rules, entities, value objects and domain events; it must remain framework-agnostic.
+8. `Program.cs` MUST NOT implement use cases; it is a composition root only.
+9. Infrastructure implements repository, messaging, storage, security and external-integration interfaces defined inward.
+10. DTO/API contracts MUST be separated from persistence entities and domain entities when exposure would couple the transport contract to the domain model.
+11. Repositories MUST NOT become business-service containers; they encapsulate persistence/query behavior only.
+12. `DbContext` is the default Unit of Work; avoid ceremonial wrappers unless a real transactional abstraction is required.
+13. Validation belongs at Application/domain boundaries, with API responsible only for transport validation/mapping.
+14. API errors must use centralized ProblemDetails/error mapping.
+15. Token generation, password hashing, storage, email, messaging and other external concerns must be behind interfaces.
+16. Audit, functional history and metrics are separate responsibilities and should use separate models/storage semantics.
+17. Secrets and environment-specific credentials MUST NOT be committed.
+18. Async I/O MUST propagate `CancellationToken` where practical.
+19. Public methods and interfaces should follow SOLID, explicit responsibilities, dependency inversion and testability.
+20. Avoid static/global state, service locators, hidden dependencies and oversized god services/controllers.
 
 ## Default Interface Placement
 
@@ -119,7 +122,7 @@ Product.Infrastructure/
       ContentRepository.cs
 ```
 
-The API consumes `IUserService`, `IContentService`, etc. It does not consume `UserRepository` or `AppDbContext`.
+The API consumes `IUserService`, `IContentService`, etc. It does not consume repository implementations or `AppDbContext`.
 
 ## Default Project Layout
 
@@ -133,9 +136,51 @@ src/
 tests/
   Product.Domain.UnitTests/
   Product.Application.UnitTests/
+  Product.Infrastructure.UnitTests/        # when useful
+  Product.Api.UnitTests/                   # thin controller/mapper behavior when useful
   Product.IntegrationTests/
   Product.ArchitectureTests/
 ```
+
+## Unit Testing and Coverage Policy
+
+Unit tests are mandatory for new or modified backend behavior.
+
+Required focus:
+
+- Domain rules, entities and value objects.
+- Application services/use cases, including success, validation, error and edge paths.
+- Authorization/tenant decisions that contain application logic.
+- Repository-independent behavior using mocks/fakes only where appropriate.
+- Mapping and controller behavior only when it adds meaningful coverage; do not write low-value tests solely to inflate percentages.
+- Regression tests for every defect fixed when practical.
+
+Coverage rules:
+
+1. The repository/pipeline coverage gate is authoritative when one already exists.
+2. If no project-specific gate exists, the common default minimum is **80% line coverage** and **70% branch coverage** for backend unit-testable code.
+3. New or materially changed application/domain code should target **>= 90% line coverage** where practical.
+4. Coverage exclusions must be intentional and documented; generated code, migrations and trivial framework bootstrap code may be excluded when justified.
+5. A backend task is not DONE if the configured coverage gate fails.
+6. Do not satisfy coverage by testing implementation details, adding meaningless assertions or excluding business code from measurement.
+7. Prefer tests that validate observable behavior and business outcomes.
+
+Recommended tooling for .NET projects:
+
+```text
+coverlet.collector
+Microsoft.NET.Test.Sdk
+xUnit or the project-approved test framework
+ReportGenerator when HTML/summary reports are needed
+```
+
+Example validation command when Coverlet collector is configured:
+
+```text
+dotnet test --configuration Release --collect:"XPlat Code Coverage"
+```
+
+Projects SHOULD enforce coverage in CI using repository-specific thresholds. When tooling supports MSBuild threshold properties, fail the build/test stage when the configured line/branch thresholds are not met.
 
 ## Required Architecture Checks
 
@@ -148,6 +193,22 @@ Architecture tests SHOULD verify:
 - provider-specific persistence code exists only in Infrastructure.
 - API does not contain domain entities/repository implementations.
 - Repository implementations are located in Infrastructure.
+- Controllers remain thin and do not contain persistence/business dependencies.
+
+## Code Quality Expectations
+
+Backend code must follow good engineering practices:
+
+- SOLID and dependency inversion.
+- Small cohesive classes and methods with one clear responsibility.
+- Explicit interfaces at architectural boundaries.
+- Dependency injection instead of object construction inside use cases/controllers.
+- Consistent naming and nullability.
+- Structured logging without secrets or sensitive payloads.
+- Centralized exception/error handling.
+- Async all the way for I/O paths.
+- Avoid duplicate logic, dead code and premature abstractions.
+- Refactor code smells before declaring a story DONE when they materially affect maintainability or testability.
 
 ## Review Classification
 
@@ -160,3 +221,15 @@ Prefer REUSE/EXTEND before CREATE when a shared implementation already exists.
 ## Definition of Done
 
 The implementation is not complete if any mandatory boundary above is violated, even when functional tests pass.
+
+A backend story is DONE only when:
+
+- Clean Architecture boundaries are respected.
+- Controller/endpoint logic is thin and transport-only.
+- Repository interfaces and implementations are separated correctly.
+- Services/use cases are testable through interfaces.
+- DTOs are explicit and do not leak persistence concerns.
+- Unit tests cover new/changed behavior and edge/error paths.
+- Architecture tests pass where configured.
+- Build passes with warnings treated according to project policy.
+- The repository coverage gate passes; if none exists, the default 80% line / 70% branch baseline is met for unit-testable backend code.
