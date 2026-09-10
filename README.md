@@ -11,7 +11,9 @@ Este repositorio debe ser usado por:
 - `PortalCorporativo`
 - `Financiero`
 - `CRM`
-- futuros dominios o modulos corporativos
+- `AppCondominio`
+- `AppColoreando`
+- futuros dominios, productos o modulos corporativos
 
 ## Principio central
 
@@ -42,11 +44,20 @@ Lectura minima recomendada para Codex:
 6. Playbook especifico del dominio, si existe.
 ```
 
+Para tareas Docker/Compose o entornos multi-equipo se deben leer ademas:
+
+```text
+CodexCommonAgents/rules/02-docker-runtime-and-image-governance.md
+CodexCommonAgents/playbooks/docker-multi-machine-runtime.md
+```
+
+La politica comun exige imagenes propias versionadas de forma inmutable, preferencia por digest para igualdad exacta entre equipos, separacion entre Compose de build y Compose de runtime desde registro, validacion de recuperabilidad remota antes de limpiar imagenes, preservacion de volumenes persistentes y exposicion local por defecto de servicios de infraestructura.
+
 ## Estructura
 
 ```text
 agents/       Roles reutilizables para Codex.
-rules/        Reglas globales de arquitectura, seguridad, calidad y codigo.
+rules/        Reglas globales de arquitectura, seguridad, calidad, codigo y runtime.
 registry/     Inventario de capacidades reutilizables y lista de no duplicacion.
 playbooks/    Guias de ejecucion por tipo de proyecto.
 templates/    Plantillas para nuevos repositorios.
@@ -61,3 +72,5 @@ Codex no debe leer todo un repositorio si la tarea puede resolverse con el conte
 - Portal transversal: `christyepez/PortalCorporativo`
 - Dominio financiero: `christyepez/Financiero`
 - Dominio CRM: `christyepez/CRM`
+- Condominios: `christyepez/AppCondominio`
+- Coloreado: `christyepez/AppColoreando`
