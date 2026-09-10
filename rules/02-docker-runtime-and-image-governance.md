@@ -18,16 +18,27 @@ Every project-owned Docker image created for implementation, testing, integratio
 
 The default target is the approved `christyepez/*` Docker Hub namespace unless a project explicitly defines another approved registry.
 
+### Repository visibility
+
+Project-owned Docker Hub repositories MUST be private by default.
+
+Public visibility requires an explicit project-level approval and a documented reason such as an intentionally open-source distributable image. Absence of an explicit approval means PRIVATE.
+
+Agents and workflows must not assume a newly created Docker Hub repository is private; they must verify the repository visibility when tooling/API access allows it and report the result.
+
+Private registry access credentials must be supplied through GitHub Actions Secrets, Docker credential stores or another approved secret manager. Docker Hub passwords/tokens must never be committed to source control, Compose files, scripts or tracked `.env` files.
+
 A Docker image that exists only in Docker Desktop or only in the local image cache of `trabajo`, `MarketingIndo` or another workstation is temporary and must not be treated as the canonical project runtime.
 
 When an agent creates or rebuilds a project-owned image it must, as part of the same implementation flow when credentials and registry access are available:
 
 1. Build from the approved source revision.
-2. Tag the image with an immutable revision-oriented tag, preferably the Git commit SHA or an approved release identifier.
-3. Push that immutable tag to Docker Hub.
-4. Resolve and record the resulting remote digest.
-5. Use that tag or digest from each implementation workstation that needs the runtime.
-6. Optionally maintain `latest` or another convenience tag, but never rely on it as the only reproducible reference.
+2. Ensure the Docker Hub repository exists with PRIVATE visibility unless a public exception is explicitly approved.
+3. Tag the image with an immutable revision-oriented tag, preferably the Git commit SHA or an approved release identifier.
+4. Push that immutable tag to Docker Hub.
+5. Resolve and record the resulting remote digest.
+6. Use that tag or digest from each implementation workstation that needs the runtime.
+7. Optionally maintain `latest` or another convenience tag, but never rely on it as the only reproducible reference.
 
 If registry credentials or connectivity prevent the push, the image may remain local only as a temporary exception. The task must report this as a blocking/pending item and must not claim multi-machine synchronization is complete.
 
@@ -36,7 +47,7 @@ If registry credentials or connectivity prevent the push, the image may remain l
 For project-owned services:
 
 1. Build once from the approved source revision.
-2. Publish the image to the approved registry, normally Docker Hub under `christyepez/*` unless the project defines another registry.
+2. Publish the image to the approved private registry, normally Docker Hub under `christyepez/*` unless the project defines another registry.
 3. Tag each release with an immutable revision-oriented tag such as the Git commit SHA.
 4. Prefer pinning runtime Compose files by digest (`repository@sha256:...`) when reproducibility between machines is required.
 5. `latest` may exist as a convenience alias, but it must not be the only reference used for reproducible environments.
@@ -63,6 +74,7 @@ Projects using Docker Compose should separate source-build and registry-runtime 
 - `.env` or generated local override files must not be committed when they contain secrets.
 - Runtime image variables should be explicit and fail fast when missing.
 - For multi-machine implementation, the preferred startup path is the registry-backed Compose configuration rather than rebuilding independently on every workstation.
+- Private registry authentication must rely on Docker login/credential stores or approved secret injection; credentials must not be embedded in image references.
 
 ## Port exposure
 
@@ -120,6 +132,7 @@ Runtime Machine(s):
 Compose Files Read:
 Images Built:
 Images Published to Docker Hub:
+Docker Hub Visibility: PRIVATE | PUBLIC-APPROVED | NOT-VERIFIED
 Remote Digests:
 Images Compared:
 Registry Recoverability Checked:
