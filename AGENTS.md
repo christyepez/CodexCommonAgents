@@ -20,6 +20,7 @@ Para cualquier tarea que use Docker, Docker Compose o imagenes de contenedores, 
 
 ```text
 rules/02-docker-runtime-and-image-governance.md
+rules/03-shared-infrastructure-reuse.md
 playbooks/docker-multi-machine-runtime.md
 ```
 
@@ -55,6 +56,8 @@ No se deben eliminar imagenes propias sin comprobar recuperabilidad remota exact
 
 Las bases de datos y volumenes persistentes no forman parte de una limpieza rutinaria y deben preservarse salvo autorizacion expresa.
 
+Antes de crear una nueva dependencia de infraestructura como base de datos, RabbitMQ, Kafka, Redis, MinIO, Seq, Grafana o Prometheus, Codex debe revisar si existe un runtime compatible que pueda reutilizarse de forma segura. La regla por defecto es REUSE antes que CREATE, manteniendo aislamiento logico por proyecto y sin reutilizar destructivamente datos, credenciales, colas, topics o volumenes de otro dominio.
+
 ## Regla principal
 
 Antes de crear cualquier componente, Codex debe revisar si existe una capacidad reutilizable en `PortalCorporativo`.
@@ -81,6 +84,8 @@ BLOCKED = detener hasta revisar dependencia, contrato o capacidad del portal.
 - Crear nuevos componentes backend en frameworks anteriores a .NET 10 sin una excepcion aprobada y documentada.
 - Usar `latest` como unica referencia de imagen para runtimes que deban ser reproducibles entre equipos.
 - Ejecutar `docker system prune -a --volumes` como mecanismo rutinario de limpieza.
+- Crear una nueva instancia de SQL Server, PostgreSQL, MySQL, RabbitMQ, Kafka, Redis u otro servicio de infraestructura sin comprobar primero si existe una instancia compatible y reutilizable.
+- Reutilizar una infraestructura existente destruyendo o mezclando datos, schemas, credenciales, colas, topics o volumenes de proyectos distintos.
 
 ## Salida esperada de Codex
 
@@ -115,6 +120,9 @@ Para tareas Docker debe agregar ademas:
 Runtime Machine(s):
 Registry Recoverability Checked:
 Digests Pinned:
+Infrastructure Reuse Checked:
+Existing Infrastructure Reused:
+Isolation Strategy:
 Persistent Volumes Preserved:
 Health Validation:
 ```
