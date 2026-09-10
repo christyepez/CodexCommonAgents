@@ -22,6 +22,7 @@ Para cualquier tarea que use Docker, Docker Compose o imagenes de contenedores, 
 rules/02-docker-runtime-and-image-governance.md
 rules/03-shared-infrastructure-reuse.md
 rules/12-github-actions-delivery-and-docker-desktop-environments.md
+rules/13-dev-test-environment-separation.md
 registry/runtime-machines.md
 registry/shared-infrastructure.md
 registry/docker-port-registry.md
@@ -99,9 +100,13 @@ Un proyecto que use Docker Compose debe mantener una separacion entre topologia/
 
 Todo Docker propio creado como parte de una implementacion compartida debe publicarse en Docker Hub o el registro aprobado antes de considerarse artefacto reusable. `trabajo` y `MarketingIndo` son actualmente los equipos de referencia y deben poder levantar el mismo runtime desde registro.
 
+Los repositorios Docker Hub propios deben ser PRIVADOS por defecto. Solo pueden ser PUBLICOS cuando exista una aprobacion explicita a nivel de proyecto y una justificacion documentada. Si no hay aprobacion explicita, la visibilidad requerida es PRIVATE.
+
 Docker Desktop es entorno local de ejecucion/cache y se usa cuando sea necesario; no es la fuente autoritativa de imagenes compartidas.
 
 GitHub es la fuente autoritativa para codigo, PRs, quality gates, workflows y metadata de release. GitHub Actions debe ser el mecanismo preferido para construir y publicar imagenes compartidas a Docker Hub. Docker Desktop en `trabajo` y `MarketingIndo` se usa como entorno de desarrollo, integracion y pruebas, consumiendo imagenes publicadas y reproducibles.
+
+DEV y TEST deben estar logicamente separados aun cuando compartan workstation e infraestructura fisica compatible. Deben diferenciar configuracion, datos, puertos y namespaces, y consumir el mismo digest candidato cuando se valida una release.
 
 No se deben eliminar imagenes propias sin comprobar recuperabilidad remota exacta. Si no existe, debe publicarse primero un tag inmutable de respaldo.
 
@@ -151,6 +156,9 @@ BLOCKED = no continuar hasta revisar el portal o resolver dependencia.
 - Dar por integrada una tarea solo porque un chat/agente la reporta terminada sin evidencia en repositorio y validaciones.
 - Considerar Docker Desktop como repositorio autoritativo de imagenes compartidas.
 - Publicar como runtime compartido una imagen generada desde GitHub cuando los quality gates requeridos esten fallando.
+- Crear o mantener un repositorio Docker Hub propio como PUBLICO sin aprobacion explicita y justificacion documentada.
+- Incluir credenciales Docker Hub en codigo, Dockerfile, Compose, scripts versionados o `.env` trackeados.
+- Validar una release en TEST usando un digest distinto del candidato que se pretende promover.
 
 ## Salida esperada de Codex
 
@@ -184,6 +192,7 @@ Para tareas Docker debe agregar ademas:
 ```text
 Runtime Machine(s):
 Registry Recoverability Checked:
+Docker Hub Visibility: PRIVATE | PUBLIC-APPROVED | NOT-VERIFIED
 Digests Pinned:
 Infrastructure Reuse Checked:
 Existing Infrastructure Reused:
@@ -199,6 +208,7 @@ GitHub Revision:
 Workflow:
 Quality Gates:
 Images Published:
+Docker Hub Visibility:
 Docker Hub Digests:
 Target Environment:
 Target Workstation(s):
