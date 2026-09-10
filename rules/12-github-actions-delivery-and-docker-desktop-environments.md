@@ -10,6 +10,8 @@ GitHub is the authoritative source for code, pull requests, workflow execution, 
 
 Docker Hub is the authoritative shared registry for project-owned container images unless a project explicitly documents another approved registry.
 
+Project-owned Docker Hub repositories MUST be PRIVATE by default. Public visibility requires explicit approval and documented justification.
+
 Docker Desktop is the local runtime for development, integration and testing on workstations such as `trabajo` and `MarketingIndo`. It is not the authoritative source for shared container artifacts.
 
 The required flow is:
@@ -19,7 +21,7 @@ GitHub repository
       -> Pull Request / Quality Gates
       -> GitHub Actions
       -> Build once from approved revision
-      -> Publish immutable image to Docker Hub
+      -> Publish immutable image to PRIVATE Docker Hub repository
       -> Resolve remote digest
       -> Development/Test Docker Compose runtime
       -> trabajo / MarketingIndo
@@ -45,13 +47,38 @@ The workflow should:
 2. Execute project quality gates before publication.
 3. Build the container image.
 4. Tag it with an immutable revision identifier, preferably the Git commit SHA.
-5. Optionally publish a convenience branch/release tag.
-6. Authenticate to Docker Hub using GitHub Secrets.
-7. Push the immutable image.
-8. Capture/report the registry digest.
-9. Make the resulting image reference available for deployment/validation.
+5. Ensure the destination Docker Hub repository is private unless a public exception is explicitly approved.
+6. Optionally publish a convenience branch/release tag.
+7. Authenticate to Docker Hub using GitHub Secrets.
+8. Push the immutable image.
+9. Capture/report the registry digest.
+10. Make the resulting image reference available for deployment/validation.
 
 For multi-image projects, every project-owned runtime image must follow the same rule.
+
+## Private registry requirements
+
+Private Docker Hub access must use token-based authentication or another approved secret-based mechanism.
+
+Credentials must never be embedded in:
+
+- source code;
+- workflow YAML plaintext;
+- Dockerfiles;
+- Compose files;
+- committed scripts;
+- tracked `.env` files;
+- image tags or image URLs.
+
+When possible, workflows or provisioning automation should verify repository visibility before publication and report one of:
+
+```text
+PRIVATE
+PUBLIC-APPROVED
+NOT-VERIFIED
+```
+
+`NOT-VERIFIED` must be treated as a pending compliance check, not as confirmation that the repository is private.
 
 ## Quality gate before image publication
 
@@ -87,11 +114,12 @@ When updating a development/test workstation:
 
 1. Read the intended GitHub revision/release.
 2. Resolve the expected Docker Hub digest.
-3. Pull the expected image.
-4. Recreate only the stateless/project-owned services that actually require updating.
-5. Do not recreate databases/stateful dependencies implicitly.
-6. Validate health, logs, ports and image digest.
-7. Compare runtime parity between `trabajo` and `MarketingIndo` when both represent the same logical environment.
+3. Authenticate Docker Desktop/CLI against Docker Hub using the approved local credential store when the repository is private.
+4. Pull the expected image.
+5. Recreate only the stateless/project-owned services that actually require updating.
+6. Do not recreate databases/stateful dependencies implicitly.
+7. Validate health, logs, ports and image digest.
+8. Compare runtime parity between `trabajo` and `MarketingIndo` when both represent the same logical environment.
 
 ## Workstation deployment automation
 
@@ -124,8 +152,9 @@ For a shared containerized implementation, `DONE` requires, when applicable:
 PR / approved revision
 + quality gates PASS
 + GitHub Actions build PASS
-+ immutable Docker Hub image published
++ PRIVATE Docker Hub image published (or explicitly approved public exception)
 + remote digest known
++ registry visibility verified when tooling allows
 + registry-backed Compose configuration valid
 + development/test runtime validated on required workstation(s)
 + stateful data preserved
@@ -140,6 +169,7 @@ GitHub Revision:
 Workflow:
 Quality Gates:
 Images Published:
+Docker Hub Visibility: PRIVATE | PUBLIC-APPROVED | NOT-VERIFIED
 Docker Hub Digests:
 Target Environment: Development | Test
 Target Workstation(s):
