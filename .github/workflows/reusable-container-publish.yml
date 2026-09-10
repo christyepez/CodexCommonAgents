@@ -1,0 +1,91 @@
+name: Reusable Container Publish
+
+on:
+  workflow_call:
+    inputs:
+      image_name:
+        description: Docker Hub image name, for example christyepez/app-api
+        required: true
+        type: string
+      context:
+        description: Docker build context
+        required: false
+        default: .
+        type: string
+      dockerfile:
+        description: Dockerfile path
+        required: false
+        default: Dockerfile
+        type: string
+      push_latest:
+        description: Also publish latest convenience tag
+        required: false
+        default: false
+        type: boolean
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_TOKEN:
+        required: true
+    outputs:
+      digest:
+        description: Published image digest
+        value: ${{ jobs.publish.outputs.digest }}
+      immutable_tag:
+        description: Immutable SHA-based image tag
+        value: ${{ jobs.publish.outputs.immutable_tag }}
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+      immutable_tag: ${{ steps.meta.outputs.immutable_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Compute immutable tag
+        id: meta
+        shell: bash
+        run: |
+          short_sha="${GITHUB_SHA::12}"
+          immutable_tag="${{ inputs.image_name }}:sha-${short_sha}"
+          echo "immutable_tag=${immutable_tag}" >> "$GITHUB_OUTPUT"
+          echo "IMMUTABLE_TAG=${immutable_tag}" >> "$GITHUB_ENV"
+
+      - name: Build and push immutable image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.context }}
+          file: ${{ inputs.dockerfile }}
+          push: true
+          tags: |
+            ${{ env.IMMUTABLE_TAG }}
+            ${{ inputs.push_latest && format('{0}:latest', inputs.image_name) || '' }}
+          provenance: mode=max
+          sbom: true
+
+      - name: Publish summary
+        shell: bash
+        run: |
+          {
+            echo "## Container publication"
+            echo ""
+            echo "- Image: ${{ steps.meta.outputs.immutable_tag }}"
+            echo "- Digest: ${{ steps.build.outputs.digest }}"
+            echo "- Source SHA: ${GITHUB_SHA}"
+          } >> "$GITHUB_STEP_SUMMARY"
