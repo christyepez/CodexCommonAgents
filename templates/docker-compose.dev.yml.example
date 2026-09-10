@@ -1,0 +1,9 @@
+services:
+  app:
+    environment:
+      APP_ENVIRONMENT: Development
+    ports:
+      - "${DEV_APP_PORT:-8080}:8080"
+
+# Project-specific infrastructure references should normally reuse approved
+# shared runtimes and isolate DEV by database/schema/vhost/topic/prefix.
