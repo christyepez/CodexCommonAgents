@@ -37,6 +37,20 @@ templates/PROJECT_CONTEXT.md
 templates/PARALLEL_EXECUTION_BOARD.md
 ```
 
+Para tareas de ingenieria, la lectura obligatoria debe incluir las reglas transversales que correspondan al cambio:
+
+```text
+rules/05-security-baseline.md
+rules/06-ci-quality-gates.md
+rules/07-api-and-contract-governance.md
+rules/08-observability-and-resilience.md
+rules/09-data-and-migration-governance.md
+rules/10-release-and-versioning.md
+rules/11-agent-ownership-and-change-control.md
+```
+
+No es necesario leer todos los documentos completos en cada tarea: Codex debe seleccionar los aplicables segun el alcance y riesgo, manteniendo bajo consumo de tokens sin omitir controles obligatorios.
+
 ## Flujo obligatorio para nuevos proyectos
 
 Todo proyecto nuevo debe iniciar con el siguiente orden logico:
@@ -67,6 +81,12 @@ Para tareas backend, la lectura obligatoria incluye:
 
 ```text
 agents/03-backend-agent.md
+rules/01-backend-clean-architecture.md
+rules/05-security-baseline.md
+rules/06-ci-quality-gates.md
+rules/07-api-and-contract-governance.md
+rules/08-observability-and-resilience.md
+rules/09-data-and-migration-governance.md
 ```
 
 ## Baseline backend
@@ -80,6 +100,20 @@ TargetFramework: net10.0
 ```
 
 Deben utilizarse paquetes estables compatibles con la linea 10.x. No se deben introducir paquetes preview en codigo productivo sin autorizacion explicita.
+
+Todo backend debe respetar Clean Architecture con Domain, Application, Infrastructure y API; usar interfaces para servicios/repositorios; DTOs separados de entidades de persistencia; controladores/endpoints sin logica de negocio; acceso a persistencia a traves de repositorios/abstracciones; y pruebas unitarias, arquitectura e integracion segun riesgo.
+
+Si el proyecto no define un umbral mayor, el quality gate comun es 80% line coverage y 70% branch coverage, apuntando a >=90% sobre codigo nuevo/modificado de Domain/Application cuando sea razonable.
+
+## Baseline de seguridad y calidad
+
+Todo cambio debe aplicar security-by-default, quality gates automatizados y manejo explicito de riesgo.
+
+Las tareas que afecten identidad, permisos, secretos, PII, datos financieros, migraciones, mensajeria, integraciones externas o infraestructura productiva requieren revision de seguridad acorde a su criticidad.
+
+Los PRs no se consideran listos para integracion mientras fallen gates obligatorios de build, tests, coverage, analisis estatico, arquitectura, contratos o seguridad aplicables.
+
+Los contratos HTTP, OpenAPI, eventos Kafka/RabbitMQ y esquemas compartidos son activos versionados. Los agentes que dependan de ellos deben acordarlos antes de avanzar en paralelo.
 
 ## Baseline Docker y multi-equipo
 
@@ -99,6 +133,22 @@ Las bases de datos y volumenes persistentes no forman parte de una limpieza ruti
 
 Antes de crear una nueva dependencia de infraestructura como base de datos, RabbitMQ, Kafka, Redis, MinIO, Seq, Grafana o Prometheus, Codex debe revisar si existe un runtime compatible que pueda reutilizarse de forma segura. La regla por defecto es REUSE antes que CREATE, manteniendo aislamiento logico por proyecto y sin reutilizar destructivamente datos, credenciales, colas, topics o volumenes de otro dominio.
 
+## Baseline de datos y resiliencia
+
+Cada bounded context es propietario de su esquema/modelo. Compartir servidor o infraestructura no autoriza compartir tablas, credenciales o acceso irrestricto a datos.
+
+Las migraciones deben versionarse, privilegiar compatibilidad hacia atras y documentar rollback o forward-fix cuando el riesgo lo requiera. Cambios destructivos deben validar respaldo/recuperabilidad antes de ejecutarse.
+
+Integraciones deben definir timeouts, retries para fallas transitorias, idempotencia cuando aplique, circuit breaker cuando exista riesgo de cascada y outbox/inbox cuando la consistencia de eventos lo justifique.
+
+Servicios relevantes deben disponer de logs estructurados, correlation/trace IDs, health checks, metricas y tracing cuando el stack lo permita.
+
+## Baseline de release
+
+Una release debe ser trazable a una revision Git inmutable, promover el mismo artefacto entre ambientes cuando sea posible y registrar version/digest, migraciones, configuracion, riesgos y evidencia de validacion.
+
+Cambios HIGH o CRITICAL pueden requerir aprobacion humana explicita. Ningun agente puede inventar ni inferir una aprobacion que no exista.
+
 ## Baseline de proyecto y trabajo paralelo
 
 Cuando se inicia un nuevo proyecto, debe organizarse en un ChatGPT Project/carpeta de proyecto cuando la interfaz lo permita. Dentro de ese espacio, cada agente o stream especializado debe trabajar en su propio chat/hilo cuando el paralelismo sea seguro.
@@ -106,6 +156,8 @@ Cuando se inicia un nuevo proyecto, debe organizarse en un ChatGPT Project/carpe
 El hilo `00 - Project Orchestrator` coordina roadmap, dependencias, contratos, ramas/PRs, integracion y estado global. Los hilos especializados no sustituyen al repositorio: Git, PRs, ADRs, pruebas y artefactos publicados son la fuente de verdad de implementacion.
 
 Los agentes pueden avanzar en paralelo solamente cuando existe ownership claro y contratos estables. Cambios de alto conflicto sobre los mismos archivos, schemas, migraciones, contratos o manifiestos deben serializarse o coordinarse primero.
+
+Cada agente debe declarar ownership de archivos/componentes y clasificar el cambio como LOW, MEDIUM, HIGH o CRITICAL. `Ready for Integration` requiere evidencia en Git/PR, pruebas ejecutadas, impacto contractual, riesgos y bloqueos.
 
 Si la interfaz no permite crear chats/carpetas programaticamente, Codex debe entregar la estructura exacta recomendada sin afirmar que la creo.
 
@@ -131,7 +183,7 @@ BLOCKED = no continuar hasta revisar el portal o resolver dependencia.
 - Quemar menus, colores, logos, formularios, grids, columnas, botones o catalogos en codigo.
 - Acoplar dominios mediante bases de datos compartidas.
 - Guardar secretos en codigo, repositorio o archivos `.env` versionados.
-- Crear integraciones externas sin contratos, adaptadores y reintentos.
+- Crear integraciones externas sin contratos, adaptadores y politicas de resiliencia.
 - Crear nuevos componentes backend en frameworks anteriores a .NET 10 sin una excepcion aprobada y documentada.
 - Usar `latest` como unica referencia de imagen para runtimes que deban ser reproducibles entre equipos.
 - Ejecutar `docker system prune -a --volumes` como mecanismo rutinario de limpieza.
@@ -139,6 +191,11 @@ BLOCKED = no continuar hasta revisar el portal o resolver dependencia.
 - Reutilizar una infraestructura existente destruyendo o mezclando datos, schemas, credenciales, colas, topics o volumenes de proyectos distintos.
 - Dar por terminada una tarea multi-equipo cuando su imagen Docker propia solo existe localmente.
 - Dar por integrada una tarea solo porque un chat/agente la reporta terminada sin evidencia en repositorio y validaciones.
+- Integrar cambios con gates obligatorios fallidos sin una excepcion documentada y aprobada.
+- Introducir TODO/FIXME criticos, codigo comentado muerto, endpoints temporales, mocks productivos o credenciales de prueba en ramas de integracion sin seguimiento/aprobacion explicita.
+- Modificar en paralelo el mismo contrato, migracion, manifiesto o archivo de alto conflicto sin coordinacion del Project Orchestrator.
+- Exponer entidades de persistencia directamente como contratos publicos de API.
+- Ejecutar cambios destructivos de datos sin evaluar recuperabilidad/rollback apropiado al ambiente.
 
 ## Salida esperada de Codex
 
@@ -157,11 +214,17 @@ Portal Components Extended:
 New Components Created:
 Reason for New Components:
 Security Impact:
+Risk Classification:
 Audit Impact:
 Notification Impact:
 Menu Impact:
 Configuration Impact:
+Contracts Impact:
+Data/Migration Impact:
+Observability/Resilience Impact:
 Tests Added:
+Coverage:
+Quality Gates:
 Commands Executed:
 Risks:
 Next Step:
@@ -187,9 +250,22 @@ Project Workspace:
 Agent Thread:
 Base Revision:
 Branch/PR:
+Owned Files/Components:
 Parallel Dependencies:
 Contracts Changed:
 Ready for Integration:
+```
+
+Para release debe agregar ademas:
+
+```text
+Release Revision:
+Artifact/Image Version:
+Remote Digest:
+Migration Status:
+Rollback/Forward-Fix Plan:
+Human Approval Required:
+Human Approval Evidence:
 ```
 
 ## Modo bajo consumo de tokens
