@@ -33,7 +33,33 @@ Para nuevos proyectos o implementaciones con trabajo paralelo, la lectura obliga
 ```text
 rules/04-project-chat-and-parallel-agent-execution.md
 playbooks/parallel-project-execution.md
+templates/PROJECT_CONTEXT.md
+templates/PARALLEL_EXECUTION_BOARD.md
 ```
+
+## Flujo obligatorio para nuevos proyectos
+
+Todo proyecto nuevo debe iniciar con el siguiente orden logico:
+
+```text
+1. agents/00-project-bootstrap-agent.md
+2. agents/01-project-orchestrator-agent.md
+3. agentes especializados requeridos por el proyecto
+4. agents/09-integration-release-agent.md si existe o el stream equivalente de integracion/release
+```
+
+El Project Bootstrap Agent debe preparar el contexto, arquitectura inicial, repositorio, estrategia Docker, reutilizacion de infraestructura, puertos, plan de agentes, waves y Definition of Done.
+
+El Project Orchestrator Agent debe mantener el tablero de ejecucion paralelo, coordinar dependencias, ramas/PRs, ownership de archivos, integracion, bloqueos, paridad Docker Hub y estado global.
+
+Todo proyecto nuevo debe crear o adaptar en su repositorio:
+
+```text
+codex/PROJECT_CONTEXT.md
+codex/PARALLEL_EXECUTION_BOARD.md
+```
+
+usando como base las plantillas comunes. Si el proyecto ya posee documentos equivalentes, deben integrarse sin duplicar fuentes de verdad.
 
 Despues debe leer el playbook del dominio correspondiente y el agente especializado que aplique a la tarea.
 
