@@ -12,46 +12,46 @@ Application services must not depend on independently-built mutable local images
 
 For the current implementation baseline, `trabajo` and `MarketingIndo` are the primary execution workstations and must be able to recreate project runtimes from the shared registry without depending on a build that only exists on one machine.
 
-## Mandatory Docker Hub publication
+## Mandatory registry publication
 
-Every project-owned Docker image created for implementation, testing, integration or reusable runtime execution must be published to Docker Hub before it is considered a shared or reusable implementation artifact.
+Every project-owned Docker image created for implementation, testing, integration or reusable runtime execution must be published to an approved registry before it is considered a shared or reusable implementation artifact.
 
-The default target is the approved `christyepez/*` Docker Hub namespace unless a project explicitly defines another approved registry.
+The preferred target for new private project-owned images is GitHub Container Registry under `ghcr.io/christyepez/*`. Docker Hub is retained as a legacy, compatibility or explicitly approved alternative.
 
-### Repository visibility
+### Registry visibility
 
-Project-owned Docker Hub repositories MUST be private by default.
+Project-owned packages/images MUST be private by default.
 
-Public visibility requires an explicit project-level approval and a documented reason such as an intentionally open-source distributable image. Absence of an explicit approval means PRIVATE.
+Public visibility requires an explicit project-level approval and a documented reason such as an intentionally open-source distributable image. Absence of explicit approval means PRIVATE.
 
-Agents and workflows must not assume a newly created Docker Hub repository is private; they must verify the repository visibility when tooling/API access allows it and report the result.
+Agents and workflows must verify registry/package visibility when tooling/API access allows it and report the result.
 
-Private registry access credentials must be supplied through GitHub Actions Secrets, Docker credential stores or another approved secret manager. Docker Hub passwords/tokens must never be committed to source control, Compose files, scripts or tracked `.env` files.
+Registry credentials must be supplied through `GITHUB_TOKEN`, GitHub Actions Secrets, Docker credential stores or another approved secret manager. Passwords/tokens must never be committed to source control, Compose files, scripts or tracked `.env` files.
 
 A Docker image that exists only in Docker Desktop or only in the local image cache of `trabajo`, `MarketingIndo` or another workstation is temporary and must not be treated as the canonical project runtime.
 
-When an agent creates or rebuilds a project-owned image it must, as part of the same implementation flow when credentials and registry access are available:
+When an agent creates or rebuilds a project-owned image it must, when credentials and registry access are available:
 
 1. Build from the approved source revision.
-2. Ensure the Docker Hub repository exists with PRIVATE visibility unless a public exception is explicitly approved.
-3. Tag the image with an immutable revision-oriented tag, preferably the Git commit SHA or an approved release identifier.
-4. Push that immutable tag to Docker Hub.
-5. Resolve and record the resulting remote digest.
+2. Ensure the destination package/repository is PRIVATE unless a public exception is explicitly approved.
+3. Tag the image with an immutable revision-oriented tag, preferably the Git commit SHA or approved release identifier.
+4. Push that immutable tag to the approved registry.
+5. Resolve and record the remote digest.
 6. Use that tag or digest from each implementation workstation that needs the runtime.
 7. Optionally maintain `latest` or another convenience tag, but never rely on it as the only reproducible reference.
 
-If registry credentials or connectivity prevent the push, the image may remain local only as a temporary exception. The task must report this as a blocking/pending item and must not claim multi-machine synchronization is complete.
+If registry credentials or connectivity prevent the push, the image may remain local only as a temporary exception. The task must report this as blocking/pending and must not claim multi-machine synchronization is complete.
 
 ## Required image strategy
 
 For project-owned services:
 
 1. Build once from the approved source revision.
-2. Publish the image to the approved private registry, normally Docker Hub under `christyepez/*` unless the project defines another registry.
+2. Publish to the approved PRIVATE registry, preferably `ghcr.io/christyepez/*`.
 3. Tag each release with an immutable revision-oriented tag such as the Git commit SHA.
 4. Prefer pinning runtime Compose files by digest (`repository@sha256:...`) when reproducibility between machines is required.
-5. `latest` may exist as a convenience alias, but it must not be the only reference used for reproducible environments.
-6. Before deleting a local project-owned image, verify an exact recoverable remote copy exists. If exact recovery is not proven, push an immutable backup tag first.
+5. `latest` may exist as a convenience alias, but must not be the only reference used for reproducible environments.
+6. Before deleting a local or legacy-registry project-owned image, verify an exact recoverable remote copy exists. If exact recovery is not proven, publish an immutable backup first.
 
 ## Docker Desktop operating model
 
@@ -70,10 +70,11 @@ Routine Docker Desktop maintenance should favor targeted operations over broad d
 Projects using Docker Compose should separate source-build and registry-runtime concerns:
 
 - `docker-compose.yml`: canonical service topology and local-development defaults.
-- `docker-compose.hub.yml` or equivalent: override project-owned `build:` entries with registry `image:` references and set `build: null`.
+- `docker-compose.ghcr.yml`, `docker-compose.registry.yml` or equivalent: override project-owned `build:` entries with approved registry `image:` references and set `build: null`.
+- Existing `docker-compose.hub.yml` files may remain during migration.
 - `.env` or generated local override files must not be committed when they contain secrets.
 - Runtime image variables should be explicit and fail fast when missing.
-- For multi-machine implementation, the preferred startup path is the registry-backed Compose configuration rather than rebuilding independently on every workstation.
+- For multi-machine implementation, prefer the registry-backed Compose configuration rather than rebuilding independently on every workstation.
 - Private registry authentication must rely on Docker login/credential stores or approved secret injection; credentials must not be embedded in image references.
 
 ## Port exposure
@@ -121,7 +122,7 @@ docker system df
 
 When a stack is recreated, validate health, ports and expected image IDs/digests.
 
-For multi-machine projects, also compare the project-owned runtime image digests between `trabajo`, `MarketingIndo` and any other active implementation workstation. A shared runtime is compliant only when the expected components resolve to the intended common digest/version.
+For multi-machine projects, compare project-owned runtime image digests between `trabajo`, `MarketingIndo` and any other active implementation workstation. A shared runtime is compliant only when the expected components resolve to the intended common digest/version.
 
 ## Expected Codex behavior
 
@@ -131,8 +132,9 @@ For Docker-related work Codex must report:
 Runtime Machine(s):
 Compose Files Read:
 Images Built:
-Images Published to Docker Hub:
-Docker Hub Visibility: PRIVATE | PUBLIC-APPROVED | NOT-VERIFIED
+Registry: GHCR | DockerHub | Other
+Images Published:
+Registry Visibility: PRIVATE | PUBLIC-APPROVED | NOT-VERIFIED
 Remote Digests:
 Images Compared:
 Registry Recoverability Checked:
