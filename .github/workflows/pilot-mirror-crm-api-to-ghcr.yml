@@ -1,0 +1,64 @@
+name: Pilot Mirror CRM API to GHCR
+
+on:
+  push:
+    paths:
+      - .github/workflows/pilot-mirror-crm-api-to-ghcr.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install skopeo and jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y skopeo jq
+
+      - name: Mirror exact public Docker Hub tag
+        env:
+          SRC: docker://docker.io/christyepez/crm-api:backup-20260910-7f188db4186c
+          DST: docker://ghcr.io/christyepez/crm-api:backup-20260910-7f188db4186c
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          skopeo copy --all --dest-creds "${GHCR_USER}:${GHCR_TOKEN}" "$SRC" "$DST"
+
+      - name: Verify GHCR package is private
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          visibility="$(gh api "/users/${GITHUB_REPOSITORY_OWNER}/packages/container/crm-api" --jq '.visibility')"
+          echo "GHCR_VISIBILITY=${visibility}"
+          test "$visibility" = "private"
+
+      - name: Verify mirrored manifest
+        env:
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          skopeo inspect --creds "${GHCR_USER}:${GHCR_TOKEN}" docker://ghcr.io/christyepez/crm-api:backup-20260910-7f188db4186c | jq '{Name, Digest, RepoTags}'
+
+      - name: Summary
+        run: |
+          {
+            echo '## GHCR private mirror pilot'
+            echo '- Source: docker.io/christyepez/crm-api:backup-20260910-7f188db4186c'
+            echo '- Target: ghcr.io/christyepez/crm-api:backup-20260910-7f188db4186c'
+            echo '- Required visibility: private'
+            echo '- Source image remains unchanged in Docker Hub'
+          } >> "$GITHUB_STEP_SUMMARY"
