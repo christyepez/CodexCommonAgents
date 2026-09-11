@@ -1,0 +1,42 @@
+name: Cleanup Accidental Public GHCR CRM API
+
+on:
+  push:
+    paths:
+      - .github/workflows/cleanup-public-ghcr-crm-api.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  delete-public-pilot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm current package visibility
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          visibility="$(gh api '/users/${GITHUB_REPOSITORY_OWNER}/packages/container/crm-api' --jq '.visibility')"
+          echo "Current visibility: ${visibility}"
+          test "$visibility" = "public"
+
+      - name: Delete accidental public package
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh api --method DELETE '/user/packages/container/crm-api'
+
+      - name: Verify package removed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if gh api '/user/packages/container/crm-api' >/dev/null 2>&1; then
+            echo 'Package still exists.' >&2
+            exit 1
+          fi
+          echo 'Public pilot package removed. Docker Hub source was not modified.'
