@@ -23,6 +23,7 @@ rules/02-docker-runtime-and-image-governance.md
 rules/03-shared-infrastructure-reuse.md
 rules/12-github-actions-delivery-and-docker-desktop-environments.md
 rules/13-dev-test-environment-separation.md
+rules/14-ghcr-private-registry.md
 registry/runtime-machines.md
 registry/shared-infrastructure.md
 registry/docker-port-registry.md
@@ -65,7 +66,7 @@ Todo proyecto nuevo debe iniciar con el siguiente orden logico:
 
 El Project Bootstrap Agent debe preparar el contexto, arquitectura inicial, repositorio, estrategia Docker, reutilizacion de infraestructura, puertos, plan de agentes, waves y Definition of Done.
 
-El Project Orchestrator Agent debe mantener el tablero de ejecucion paralelo, coordinar dependencias, ramas/PRs, ownership de archivos, integracion, bloqueos, paridad Docker Hub y estado global.
+El Project Orchestrator Agent debe mantener el tablero de ejecucion paralelo, coordinar dependencias, ramas/PRs, ownership de archivos, integracion, bloqueos, paridad de registro y estado global.
 
 Todo proyecto nuevo debe crear o adaptar en su repositorio:
 
@@ -96,15 +97,15 @@ Todo proyecto contenedorizado debe poder ejecutarse de forma reproducible en dis
 
 Para servicios propios del proyecto, Codex debe preferir imagenes publicadas en el registro con tags inmutables por revision y, cuando se requiera igualdad exacta entre equipos, referencias por digest `repository@sha256:...`.
 
-Un proyecto que use Docker Compose debe mantener una separacion entre topologia/base de desarrollo y runtime desde registro, normalmente mediante `docker-compose.yml` + `docker-compose.hub.yml` o equivalente.
+El registro preferido para nuevas imagenes privadas propias es GitHub Container Registry (`ghcr.io`). Docker Hub queda permitido como compatibilidad, legado o excepcion aprobada.
 
-Todo Docker propio creado como parte de una implementacion compartida debe publicarse en Docker Hub o el registro aprobado antes de considerarse artefacto reusable. `trabajo` y `MarketingIndo` son actualmente los equipos de referencia y deben poder levantar el mismo runtime desde registro.
+Todo Docker propio creado como parte de una implementacion compartida debe publicarse en GHCR privado o en otro registro aprobado antes de considerarse artefacto reusable. `trabajo` y `MarketingIndo` son actualmente los equipos de referencia y deben poder levantar el mismo runtime desde el registro aprobado.
 
-Los repositorios Docker Hub propios deben ser PRIVADOS por defecto. Solo pueden ser PUBLICOS cuando exista una aprobacion explicita a nivel de proyecto y una justificacion documentada. Si no hay aprobacion explicita, la visibilidad requerida es PRIVATE.
+Los paquetes GHCR propios deben ser PRIVADOS por defecto. Cualquier imagen publica requiere aprobacion explicita y justificacion documentada.
 
 Docker Desktop es entorno local de ejecucion/cache y se usa cuando sea necesario; no es la fuente autoritativa de imagenes compartidas.
 
-GitHub es la fuente autoritativa para codigo, PRs, quality gates, workflows y metadata de release. GitHub Actions debe ser el mecanismo preferido para construir y publicar imagenes compartidas a Docker Hub. Docker Desktop en `trabajo` y `MarketingIndo` se usa como entorno de desarrollo, integracion y pruebas, consumiendo imagenes publicadas y reproducibles.
+GitHub es la fuente autoritativa para codigo, PRs, quality gates, workflows y metadata de release. GitHub Actions debe ser el mecanismo preferido para construir y publicar imagenes compartidas a GHCR. Docker Desktop en `trabajo` y `MarketingIndo` se usa como entorno de desarrollo, integracion y pruebas, consumiendo imagenes publicadas y reproducibles.
 
 DEV y TEST deben estar logicamente separados aun cuando compartan workstation e infraestructura fisica compatible. Deben diferenciar configuracion, datos, puertos y namespaces, y consumir el mismo digest candidato cuando se valida una release.
 
@@ -112,7 +113,7 @@ No se deben eliminar imagenes propias sin comprobar recuperabilidad remota exact
 
 Las bases de datos y volumenes persistentes no forman parte de una limpieza rutinaria y deben preservarse salvo autorizacion expresa.
 
-Antes de crear una nueva dependencia de infraestructura como base de datos, RabbitMQ, Kafka, Redis, MinIO, Seq, Grafana o Prometheus, Codex debe revisar si existe un runtime compatible que pueda reutilizarse de forma segura. La regla por defecto es REUSE antes que CREATE, manteniendo aislamiento logico por proyecto y sin reutilizar destructivamente datos, credenciales, colas, topics o volumenes de otro dominio.
+Antes de crear una nueva dependencia de infraestructura como base de datos, RabbitMQ, Kafka, Redis, MinIO, Seq, Grafana o Prometheus, Codex debe revisar si existe un runtime compatible que pueda reutilizarse de forma segura. La regla por defecto es REUSE antes que CREATE, manteniendo aislamiento logico por proyecto y sin reutilizar destructivamente datos, schemas, credenciales, colas, topics o volumenes de otro dominio.
 
 ## Baseline de proyecto y trabajo paralelo
 
@@ -156,9 +157,10 @@ BLOCKED = no continuar hasta revisar el portal o resolver dependencia.
 - Dar por integrada una tarea solo porque un chat/agente la reporta terminada sin evidencia en repositorio y validaciones.
 - Considerar Docker Desktop como repositorio autoritativo de imagenes compartidas.
 - Publicar como runtime compartido una imagen generada desde GitHub cuando los quality gates requeridos esten fallando.
-- Crear o mantener un repositorio Docker Hub propio como PUBLICO sin aprobacion explicita y justificacion documentada.
-- Incluir credenciales Docker Hub en codigo, Dockerfile, Compose, scripts versionados o `.env` trackeados.
+- Crear o mantener un paquete GHCR propio como PUBLICO sin aprobacion explicita y justificacion documentada.
+- Incluir credenciales de registro en codigo, Dockerfile, Compose, scripts versionados o `.env` trackeados.
 - Validar una release en TEST usando un digest distinto del candidato que se pretende promover.
+- Eliminar una imagen Docker Hub que sea la unica copia recuperable antes de completar su migracion y validacion en GHCR.
 
 ## Salida esperada de Codex
 
@@ -191,8 +193,9 @@ Para tareas Docker debe agregar ademas:
 
 ```text
 Runtime Machine(s):
+Registry: GHCR | DockerHub | Other
 Registry Recoverability Checked:
-Docker Hub Visibility: PRIVATE | PUBLIC-APPROVED | NOT-VERIFIED
+Registry Visibility: PRIVATE | PUBLIC-APPROVED | NOT-VERIFIED
 Digests Pinned:
 Infrastructure Reuse Checked:
 Existing Infrastructure Reused:
@@ -208,8 +211,9 @@ GitHub Revision:
 Workflow:
 Quality Gates:
 Images Published:
-Docker Hub Visibility:
-Docker Hub Digests:
+Registry:
+Registry Visibility:
+Registry Digests:
 Target Environment:
 Target Workstation(s):
 Runtime Digest Match:
