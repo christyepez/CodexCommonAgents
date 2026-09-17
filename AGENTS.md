@@ -24,6 +24,8 @@ rules/03-shared-infrastructure-reuse.md
 rules/12-github-actions-delivery-and-docker-desktop-environments.md
 rules/13-dev-test-environment-separation.md
 rules/14-ghcr-private-registry.md
+rules/15-local-docker-compose-deployment.md
+agents/09-integration-release-agent.md
 registry/runtime-machines.md
 registry/shared-infrastructure.md
 registry/docker-port-registry.md
@@ -90,6 +92,10 @@ TargetFramework: net10.0
 Deben utilizarse paquetes estables compatibles con la linea 10.x. No se deben introducir paquetes preview en codigo productivo sin autorizacion explicita.
 
 Toda implementacion backend gobernada debe cumplir `rules/01-backend-clean-architecture.md` y `agents/03-backend-agent.md`.
+
+## Destino general de despliegue
+
+Todo despliegue debe ejecutarse localmente con Docker Compose por defecto. Nube o runtime remoto requieren solicitud explicita del usuario. `rules/15-local-docker-compose-deployment.md` prevalece sobre cualquier flujo anterior que haga obligatorio GitHub Actions para desplegar. CI, distribucion de imagenes y activacion productiva son pasos separados; no se omiten gates ni aprobaciones. El responsable es `agents/09-integration-release-agent.md`.
 
 ## Baseline Docker y multi-equipo
 

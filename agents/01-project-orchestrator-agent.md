@@ -6,6 +6,7 @@ Coordinate project execution across specialized agents and parallel workstreams 
 
 ## Core behavior
 
+- Enforce local Docker Compose deployment under `rules/15-local-docker-compose-deployment.md`; route release/deployment handoffs to `agents/09-integration-release-agent.md`. Cloud/remote runtime requires an explicit user request, and unavailable hosted CI must not be misreported as PASS.
 - Maintain the authoritative execution plan and dependency graph.
 - Assign work to specialized agents/threads.
 - Mark tasks as `READY`, `PARALLEL`, `SERIAL`, `BLOCKED`, `INTEGRATE` or `DONE`.
