@@ -4,6 +4,11 @@
 
 This rule applies to projects governed by `CodexCommonAgents` that use GitHub as their source repository and Docker for local development/testing runtimes.
 
+
+## Local deployment precedence
+
+Apply `rules/15-local-docker-compose-deployment.md`: all runtime deployments default to local Docker Compose. Hosted CI and private image publication are separate automation/artifact steps, not cloud runtime deployment. GitHub Actions is preferred when available, not mandatory for single-workstation local candidate validation. Shared delivery still requires private registry/digest evidence; required checks and approvals are not bypassed.
+
 ## Delivery model
 
 GitHub is the authoritative source for code, pull requests, workflow execution, release metadata and deployment automation.
@@ -115,7 +120,7 @@ For a shared containerized implementation, `DONE` requires, when applicable:
 ```text
 PR / approved revision
 + quality gates PASS
-+ GitHub Actions build PASS
++ approved reproducible build PASS (GitHub Actions or authorized equivalent)
 + PRIVATE GHCR package published (or approved registry exception)
 + remote digest known
 + visibility verified or explicitly reported NOT-VERIFIED

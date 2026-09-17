@@ -53,6 +53,10 @@ CodexCommonAgents/playbooks/docker-multi-machine-runtime.md
 
 La politica comun exige imagenes propias versionadas de forma inmutable, preferencia por digest para igualdad exacta entre equipos, separacion entre Compose de build y Compose de runtime desde registro, validacion de recuperabilidad remota antes de limpiar imagenes, preservacion de volumenes persistentes y exposicion local por defecto de servicios de infraestructura.
 
+## Despliegue por defecto
+
+Todos los proyectos deben desplegarse localmente con Docker Compose; nube o runtime remoto solo por solicitud explicita. La politica autoritativa es `rules/15-local-docker-compose-deployment.md`, a cargo de `agents/09-integration-release-agent.md`. GitHub Actions y los registros privados pueden automatizar validacion/distribucion, pero no son destinos de despliegue ni sustituyen la aceptacion local.
+
 ## Estructura
 
 ```text

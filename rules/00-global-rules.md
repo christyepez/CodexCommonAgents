@@ -21,6 +21,7 @@ Reglas obligatorias para todos los proyectos administrados por Codex.
 13. Mantener cambios pequenos, revisables y probables.
 14. Documentar decisiones de arquitectura en ADR cuando cambien una regla relevante.
 15. Ejecutar build y pruebas cuando aplique.
+16. Desplegar localmente con Docker Compose por defecto; nube o runtime remoto solo por solicitud explicita del usuario. Aplicar `rules/15-local-docker-compose-deployment.md`; CI y publicacion de imagenes no equivalen a despliegue.
 
 ## Criterio de salida
 
