@@ -136,6 +136,8 @@ Los agentes pueden avanzar en paralelo solamente cuando existe ownership claro y
 
 Si la interfaz no permite crear, mover o renombrar chats/carpetas programaticamente, Codex debe entregar la estructura exacta recomendada, marcar las acciones manuales pendientes y nunca afirmar que las ejecuto. En cuanto la capacidad exista, el orquestador debe normalizar la ubicacion de los chats antes de seguir creando nuevos streams.
 
+Cuando un chat llegue al limite de contexto/longitud, NO se debe continuar con nombres genericos como `parte 2`, `parte 3` o `continuacion`. Debe abrirse un sucesor dentro del mismo workspace y del mismo stream usando secuencia por rol (`00.01`, `00.02`, `02.01`, `02.02`, etc.), con handoff obligatorio del hilo anterior. Los chats legacy multiparte deben conservarse como historial y mapearse al subagente responsable durante la normalizacion.
+
 ## Regla principal
 
 Antes de crear cualquier componente, Codex debe revisar si existe una capacidad reutilizable en `PortalCorporativo`.
