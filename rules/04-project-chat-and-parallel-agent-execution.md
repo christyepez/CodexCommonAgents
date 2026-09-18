@@ -40,6 +40,33 @@ Recommended baseline threads:
 
 Only create threads that are useful for the project. Avoid empty or artificial parallelism. Use the numeric prefix convention consistently so chats remain sortable. When a new specialist role is introduced later, create its chat inside the existing project workspace before dispatching work.
 
+## Conversation-limit continuation rule
+
+A chat reaching the product context/length limit MUST NOT cause the project to fall back to generic chats named `Parte 2`, `Parte 3`, etc.
+
+When a specialist or orchestrator thread reaches its limit, create a successor inside the same project workspace and preserve the role identity with a sequence suffix:
+
+```text
+00.01 - Project Orchestrator
+00.02 - Project Orchestrator
+01.01 - Architecture
+01.02 - Architecture
+02.01 - Backend
+02.02 - Backend
+03.01 - Frontend
+03.02 - Frontend
+...
+```
+
+Rules:
+
+- A continuation belongs to the SAME agent/stream; it is not a new project or new responsibility.
+- Before the successor starts, the previous thread must produce a handoff with current revision, active branch/PR, completed work, pending work, blockers, decisions and next action.
+- The successor must read the handoff and synchronize with the repository before continuing.
+- Generic legacy names such as `parte 1`, `parte 2`, `parte 3`, `continuacion` or `seguir` should be renamed/mapped to their owning stream during workspace normalization.
+- Do not create one long mixed successor chat containing Backend + Frontend + QA + DevOps merely because an old monolithic chat reached its limit.
+- If the old chat contains several concerns, preserve it as legacy/history and dispatch each active concern to its correct specialist thread.
+
 ## Orchestrator responsibilities
 
 The `00 - Project Orchestrator` thread is the coordination authority. It maintains the implementation roadmap, dependencies, sprint/task state, shared decisions, integration order and blocking issues.
@@ -62,15 +89,21 @@ Each agent must continuously synchronize against the latest approved repository 
 
 ## Handoff contract
 
-Each specialist thread must finish a task with a concise handoff containing:
+Each specialist thread must finish a task or context-limit transition with a concise handoff containing:
 
 ```text
 Agent:
 Task/Story:
+Project Workspace:
+Current Thread:
+Successor Thread:
 Base Revision:
 Branch/PR:
 Files Modified:
 Contracts Changed:
+Decisions:
+Completed:
+Pending:
 Tests Executed:
 Docker Images Published:
 Dependencies/Blockers:
@@ -84,11 +117,21 @@ The orchestrator should assign logical ownership before parallel execution. If t
 
 ## Completion rule
 
-A task is not considered integrated only because an agent chat reports completion. Integration requires repository evidence: committed changes, successful validation, and when applicable merged PR, common Docker Hub image/digest and runtime verification.
+A task is not considered integrated only because an agent chat reports completion. Integration requires repository evidence: committed changes, successful validation, and when applicable merged PR, common registry image/digest and runtime verification.
 
 ## Workspace normalization for existing projects
 
-When an existing project is discovered outside a dedicated workspace, the orchestrator must classify it as `WORKSPACE-NORMALIZATION-REQUIRED`. The target state is one canonical project workspace containing the orchestrator and all active specialist chats. Duplicate, obsolete or cross-project threads should be identified for manual archival/renaming/move when the product does not expose those actions programmatically.
+When an existing project is discovered outside a dedicated workspace, the orchestrator must classify it as `WORKSPACE-NORMALIZATION-REQUIRED`. The target state is one canonical project workspace containing the orchestrator and all active specialist chats.
+
+Normalization must:
+
+1. Identify all legacy chats belonging to the project.
+2. Classify each legacy chat by dominant stream: Orchestrator, Architecture, Backend, Frontend, Data, DevOps, Security, QA, Documentation or Integration.
+3. Move/rename chats when the product surface supports it.
+4. Preserve old multi-part chats as history when merging is unavailable.
+5. Start new active work in the correct specialist thread, not in another generic continuation.
+6. Record predecessor/successor relationships so no implementation context is lost.
+7. Identify duplicate, obsolete or cross-project threads for archival or relocation.
 
 The orchestrator should maintain this workspace manifest:
 
@@ -98,6 +141,7 @@ Canonical Name:
 Repository:
 00 - Project Orchestrator:
 Active Specialist Threads:
+Continuation Chains:
 Legacy/Unsorted Threads:
 Manual Workspace Actions Pending:
 Workspace State: READY | WORKSPACE-PENDING | WORKSPACE-NORMALIZATION-REQUIRED
