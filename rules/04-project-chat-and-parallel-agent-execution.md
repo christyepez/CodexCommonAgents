@@ -6,9 +6,9 @@ This rule applies when a new project or substantial implementation stream is cre
 
 ## Project workspace convention
 
-Create one ChatGPT Project or equivalent project folder/workspace for each software project when the product surface supports it.
+Each software project MUST have one ChatGPT Project or equivalent project folder/workspace when the product surface supports it. Workspace creation/selection is a bootstrap gate, not an optional organizational preference.
 
-The project workspace should use the same canonical project name as the source repository whenever practical.
+The project workspace should use the same canonical project name as the source repository whenever practical. If the workspace does not exist, create it before opening implementation threads. If programmatic creation is unavailable, mark `WORKSPACE-PENDING`, provide the exact workspace name and required chats, and do not scatter new agent threads outside the project.
 
 Examples:
 
@@ -21,7 +21,7 @@ PortalCorporativo
 
 ## Chat-per-agent model
 
-Inside the project workspace, create a separate chat/thread for each active specialist agent or execution stream instead of mixing all work into one long execution chat.
+Inside the project workspace, create a separate chat/thread for each active specialist agent or execution stream instead of mixing all work into one long execution chat. Every specialist thread must remain under the same project workspace as `00 - Project Orchestrator`.
 
 Recommended baseline threads:
 
@@ -38,7 +38,7 @@ Recommended baseline threads:
 09 - Integration and Release
 ```
 
-Only create threads that are useful for the project. Avoid empty or artificial parallelism.
+Only create threads that are useful for the project. Avoid empty or artificial parallelism. Use the numeric prefix convention consistently so chats remain sortable. When a new specialist role is introduced later, create its chat inside the existing project workspace before dispatching work.
 
 ## Orchestrator responsibilities
 
@@ -86,6 +86,23 @@ The orchestrator should assign logical ownership before parallel execution. If t
 
 A task is not considered integrated only because an agent chat reports completion. Integration requires repository evidence: committed changes, successful validation, and when applicable merged PR, common Docker Hub image/digest and runtime verification.
 
+## Workspace normalization for existing projects
+
+When an existing project is discovered outside a dedicated workspace, the orchestrator must classify it as `WORKSPACE-NORMALIZATION-REQUIRED`. The target state is one canonical project workspace containing the orchestrator and all active specialist chats. Duplicate, obsolete or cross-project threads should be identified for manual archival/renaming/move when the product does not expose those actions programmatically.
+
+The orchestrator should maintain this workspace manifest:
+
+```text
+Project Workspace:
+Canonical Name:
+Repository:
+00 - Project Orchestrator:
+Active Specialist Threads:
+Legacy/Unsorted Threads:
+Manual Workspace Actions Pending:
+Workspace State: READY | WORKSPACE-PENDING | WORKSPACE-NORMALIZATION-REQUIRED
+```
+
 ## Product limitation
 
-If the current ChatGPT surface does not allow programmatic creation of Projects, folders or chats, the agent must still maintain this organization as the recommended operating convention and provide the exact thread structure for the user to create or use. It must never claim a chat/folder was created when the available tools cannot create it.
+If the current ChatGPT surface does not allow programmatic creation, moving, renaming or archival of Projects/folders/chats, the agent must still enforce the target organization, provide the exact actions required, and never claim those UI changes were executed.
