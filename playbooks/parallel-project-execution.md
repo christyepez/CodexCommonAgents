@@ -6,11 +6,12 @@ Coordinate multiple specialist agents in parallel while keeping repository integ
 
 ## Startup
 
-1. Create or select the ChatGPT Project/workspace for the software project.
-2. Open `00 - Project Orchestrator` as the coordination thread.
+1. Create or select the canonical ChatGPT Project/workspace for the software project. If it does not exist and creation is unavailable programmatically, set state `WORKSPACE-PENDING` and provide the exact manual creation action before dispatching new specialist threads.
+2. Open or create `00 - Project Orchestrator` inside that workspace as the coordination thread.
 3. Read the project `AGENTS.md`, current sprint/roadmap, architecture decisions and common-agent rules.
 4. Split the backlog into independent work packets with explicit dependencies and file/contract ownership.
-5. Create only the specialist threads needed for the current phase.
+5. Create only the specialist threads needed for the current phase, always inside the same project workspace and using stable numeric prefixes.
+6. For an existing unsorted project, inventory legacy chats and normalize them into the canonical workspace before creating duplicate streams.
 
 ## Recommended execution waves
 
