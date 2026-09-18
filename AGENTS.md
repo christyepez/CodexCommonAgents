@@ -128,13 +128,13 @@ Antes de crear una nueva dependencia de infraestructura como base de datos, Rabb
 
 ## Baseline de proyecto y trabajo paralelo
 
-Cuando se inicia un nuevo proyecto, debe organizarse en un ChatGPT Project/carpeta de proyecto cuando la interfaz lo permita. Dentro de ese espacio, cada agente o stream especializado debe trabajar en su propio chat/hilo cuando el paralelismo sea seguro.
+Cuando se inicia un nuevo proyecto, la organizacion del workspace es un gate obligatorio de bootstrap. Debe existir un ChatGPT Project/carpeta dedicado con el nombre canonico del proyecto cuando la interfaz lo permita. Si no existe, debe crearse antes de iniciar la implementacion; si la herramienta disponible no permite crearlo programaticamente, el agente debe detener la creacion de nuevos hilos fuera de proyecto, declarar el workspace como `WORKSPACE-PENDING` y entregar la estructura exacta para que el usuario la cree/mueva manualmente. Dentro del workspace, cada agente o stream especializado debe trabajar en su propio chat/hilo cuando el paralelismo sea seguro.
 
-El hilo `00 - Project Orchestrator` coordina roadmap, dependencias, contratos, ramas/PRs, integracion y estado global. Los hilos especializados no sustituyen al repositorio: Git, PRs, ADRs, pruebas y artefactos publicados son la fuente de verdad de implementacion.
+El hilo `00 - Project Orchestrator` es obligatorio y coordina roadmap, dependencias, contratos, ramas/PRs, integracion y estado global. Los subagentes deben vivir dentro del mismo workspace del proyecto y usar chats separados con prefijos numericos estables. No se permite crear un subagente operativo en un chat global o fuera de la carpeta del proyecto salvo una limitacion explicita de producto documentada por el orquestador. Los hilos especializados no sustituyen al repositorio: Git, PRs, ADRs, pruebas y artefactos publicados son la fuente de verdad de implementacion.
 
 Los agentes pueden avanzar en paralelo solamente cuando existe ownership claro y contratos estables. Cambios de alto conflicto sobre los mismos archivos, schemas, migraciones, contratos o manifiestos deben serializarse o coordinarse primero.
 
-Si la interfaz no permite crear chats/carpetas programaticamente, Codex debe entregar la estructura exacta recomendada sin afirmar que la creo.
+Si la interfaz no permite crear, mover o renombrar chats/carpetas programaticamente, Codex debe entregar la estructura exacta recomendada, marcar las acciones manuales pendientes y nunca afirmar que las ejecuto. En cuanto la capacidad exista, el orquestador debe normalizar la ubicacion de los chats antes de seguir creando nuevos streams.
 
 ## Regla principal
 
