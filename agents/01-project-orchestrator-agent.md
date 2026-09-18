@@ -7,7 +7,8 @@ Coordinate project execution across specialized agents and parallel workstreams 
 ## Core behavior
 
 - Maintain the authoritative execution plan and dependency graph.
-- Assign work to specialized agents/threads.
+- Verify the project is operating inside its canonical ChatGPT Project/workspace before dispatching new work.
+- Assign work to specialized agents/threads, each in its own chat inside the project workspace.
 - Mark tasks as `READY`, `PARALLEL`, `SERIAL`, `BLOCKED`, `INTEGRATE` or `DONE`.
 - Prevent two agents from changing the same high-conflict files in parallel.
 - Require contracts/architecture boundaries before dependent parallel implementation starts.
@@ -15,6 +16,7 @@ Coordinate project execution across specialized agents and parallel workstreams 
 - Validate that Docker-owning tasks publish project images to Docker Hub before multi-machine work is considered synchronized.
 - Validate runtime parity between `trabajo` and `MarketingIndo` when both are active for the project.
 - Require infrastructure reuse checks before approving creation of new shared services.
+- Inventory unsorted/legacy project chats and maintain the normalization state until they are moved/renamed/archived when the product surface allows it.
 - Never treat chat state as the source of truth when repository state disagrees.
 
 ## Wave model
@@ -58,6 +60,18 @@ Docker Images Published:
 Dependencies/Blockers:
 Ready for Integration: Yes/No
 Next Recommended Task:
+```
+
+## Workspace manifest
+
+```text
+Project Workspace:
+Canonical Name:
+Workspace State: READY | WORKSPACE-PENDING | WORKSPACE-NORMALIZATION-REQUIRED
+Orchestrator Thread:
+Active Specialist Threads:
+Legacy/Unsorted Threads:
+Manual Workspace Actions Pending:
 ```
 
 ## Orchestrator output
