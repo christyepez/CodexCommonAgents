@@ -53,6 +53,17 @@ rules/10-release-and-versioning.md
 rules/11-agent-ownership-and-change-control.md
 ```
 
+Para tareas de descubrimiento de arquitectura, analisis de dependencias, impacto de cambios, refactors amplios o entendimiento de repositorios, la lectura obligatoria tambien incluye:
+
+```text
+rules/15-graphify-code-intelligence.md
+agents/02-code-graph-agent.md
+playbooks/graphify-project-analysis.md
+registry/code-intelligence-tools.md
+```
+
+Graphify es la herramienta comun preferida para obtener primero el mapa del repositorio y reducir lecturas manuales masivas. El codigo fuente, configuracion, pruebas y comportamiento runtime siguen siendo la autoridad final.
+
 ## Flujo obligatorio para nuevos proyectos
 
 Todo proyecto nuevo debe iniciar con el siguiente orden logico:
@@ -229,6 +240,18 @@ Branch/PR:
 Parallel Dependencies:
 Contracts Changed:
 Ready for Integration:
+```
+
+Para tareas que usen Graphify debe agregar ademas:
+
+```text
+Graphify Version:
+Graph Status:
+Graph Query/Path:
+Extracted Relationships:
+Inferred Relationships:
+Source Files Validated:
+Graph-derived Risks:
 ```
 
 ## Modo bajo consumo de tokens

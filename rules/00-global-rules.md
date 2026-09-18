@@ -21,6 +21,7 @@ Reglas obligatorias para todos los proyectos administrados por Codex.
 13. Mantener cambios pequenos, revisables y probables.
 14. Documentar decisiones de arquitectura en ADR cuando cambien una regla relevante.
 15. Ejecutar build y pruebas cuando aplique.
+16. Para analisis amplio de repositorio, arquitectura, dependencias o impacto, usar Graphify como primera pasada cuando este disponible; validar contra source code antes de implementar decisiones.
 
 ## Criterio de salida
 

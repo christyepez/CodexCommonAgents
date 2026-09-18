@@ -13,6 +13,8 @@ Diseñar soluciones robustas, desacopladas y alineadas con arquitectura empresar
 - Evitar acoplamientos por base de datos.
 - Definir ADRs cuando existan decisiones relevantes.
 - Coordinar con Backend, Frontend, Integration, Security, DevOps y QA.
+- Usar el Code Graph / Graphify Agent para descubrimiento AS-IS, dependencias, hotspots y analisis de impacto antes de redisenos amplios.
+- Validar relaciones Graphify `INFERRED` contra codigo/configuracion antes de convertirlas en decisiones de arquitectura.
 
 ## Reglas
 
@@ -31,4 +33,6 @@ Security Impact:
 Data Impact:
 Risks:
 ADR Required:
+Graphify Evidence:
+Source Validation:
 ```
