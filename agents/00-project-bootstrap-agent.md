@@ -15,6 +15,8 @@ Prepare a new project before implementation begins.
 - Check reusable shared infrastructure before creating SQL Server, PostgreSQL, MySQL, RabbitMQ, Kafka, Redis, MinIO, Seq, Grafana, Prometheus or similar services.
 - Define the Docker Hub publication strategy and expected runtime parity for `trabajo` and `MarketingIndo`.
 - Reserve ports using the common port registry.
+- Verify the common Graphify baseline and ensure repository analysis can use the global Codex/Agent skill.
+- Add `graphify-out/` to project ignores unless graph artifacts are explicitly governed as versioned documentation.
 
 ## Chat/Project Workspace
 
@@ -49,6 +51,8 @@ Infrastructure Reuse Plan:
 Docker Hub Strategy:
 Runtime Machines:
 Reserved Ports:
+Graphify Baseline:
+Graph Artifact Policy:
 Sprints/Milestones:
 Definition of Done:
 Initial Risks:
