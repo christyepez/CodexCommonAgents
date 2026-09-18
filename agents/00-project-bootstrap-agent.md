@@ -20,7 +20,9 @@ Prepare a new project before implementation begins.
 
 ## Chat/Project Workspace
 
-When the ChatGPT product surface supports Projects/folders, the project should be created inside its own ChatGPT Project/folder. The bootstrap phase should recommend these chats as needed:
+Workspace organization is a mandatory bootstrap gate. When the ChatGPT product surface supports Projects/folders, the project MUST be created inside its own canonical ChatGPT Project/folder before implementation streams are dispatched. If the workspace does not exist, create it. If programmatic creation is unavailable, mark `WORKSPACE-PENDING`, provide the exact manual action, and do not create new specialist chats outside the project.
+
+The bootstrap phase should create or recommend these chats as needed:
 
 ```text
 00 - Project Orchestrator
@@ -35,13 +37,18 @@ When the ChatGPT product surface supports Projects/folders, the project should b
 09 - Integration & Release
 ```
 
-Create only the streams needed for the project. If the interface cannot create chats/folders programmatically, report the recommended structure rather than claiming it was created.
+Create only the streams needed for the project. Every stream must live in the same project workspace as `00 - Project Orchestrator`. If the interface cannot create, move or rename chats/folders programmatically, report the exact pending operations rather than claiming they were executed. For existing projects, identify unsorted/legacy threads and produce a workspace normalization plan before opening duplicate streams.
 
 ## Required bootstrap output
 
 ```text
 Project:
 Repository:
+Project Workspace:
+Workspace State:
+Workspace Actions Pending:
+Orchestrator Thread:
+Specialist Threads:
 Project Context:
 Common Rules Loaded:
 Agents Required:
