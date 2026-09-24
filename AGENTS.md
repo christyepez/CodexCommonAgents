@@ -64,6 +64,33 @@ registry/code-intelligence-tools.md
 
 Graphify es la herramienta comun preferida para obtener primero el mapa del repositorio y reducir lecturas manuales masivas. El codigo fuente, configuracion, pruebas y comportamiento runtime siguen siendo la autoridad final.
 
+Para tareas de implementacion, hardening, revision de codigo o preparacion de integracion/release, deben usarse tambien los agentes comunes de calidad cuando apliquen:
+
+```text
+agents/04-anti-slop-agent.md
+agents/05-thermos-agent.md
+playbooks/anti-slop-thermos-quality-gate.md
+registry/code-quality-agents.md
+```
+
+Anti-Slop debe ejecutarse como filtro posterior a la implementacion cuando existan cambios de UI/UX/copy, codigo generado con boilerplate relevante, comentarios narrativos de bajo valor, abstracciones genericas o implementaciones AI-assisted amplias. No reemplaza el diseno del proyecto ni sus reglas de arquitectura.
+
+Thermos debe ejecutarse como gate profundo antes de integracion/release para cambios materiales, y es obligatorio para cambios de seguridad/autorizacion, datos financieros o sensibles, migraciones, infraestructura productiva, refactors transversales o release candidates con codigo significativo.
+
+Orden comun preferido:
+
+```text
+implementacion
+-> build/tests/analyzers del proyecto
+-> Anti-Slop cuando aplique
+-> Thermos
+-> correccion de hallazgos validados
+-> re-ejecucion de pruebas afectadas
+-> integracion/release
+```
+
+Los hallazgos de ambos agentes deben estar sustentados con archivo/simbolo, modo de fallo y evidencia. No se aceptan bloqueos basados solo en preferencias esteticas o especulacion.
+
 ## Flujo obligatorio para nuevos proyectos
 
 Todo proyecto nuevo debe iniciar con el siguiente orden logico:
@@ -254,6 +281,20 @@ Extracted Relationships:
 Inferred Relationships:
 Source Files Validated:
 Graph-derived Risks:
+```
+
+Para tareas que usen Anti-Slop o Thermos debe agregar ademas:
+
+```text
+Anti-Slop Applied:
+Anti-Slop Source/Version:
+Anti-Slop Result:
+Thermos Applied:
+Thermos Source/Version:
+Thermos Base/Head:
+Thermos Critical/High Findings:
+Thermos Result:
+Quality Gate Evidence:
 ```
 
 ## Modo bajo consumo de tokens
